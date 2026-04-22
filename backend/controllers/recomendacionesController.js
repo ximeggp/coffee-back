@@ -20,7 +20,7 @@ const addCafeterias = asyncHandler(async(req, res) => {
     }
     if(req.body.rating < 1 || req.body.rating > 5){
         res.status(400)
-        throw new Error("La calificación debe ser entre 1 y 5, siende este último lo máximo.")
+        throw new Error("La calificación debe ser entre 1 y 5, siendo este último lo máximo.")
         
     }
 
