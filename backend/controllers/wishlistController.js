@@ -63,7 +63,7 @@ const deleteWishlist = asyncHandler(async(req, res) => {
 
     await Wishlist.findByIdAndDelete(req.params.id)
 
-    res.status(200).json({mensaje: "Cafetería"})
+    res.status(200).json({mensaje: "Cafetería eliminada"})
 })
 
 module.exports = {
