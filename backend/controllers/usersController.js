@@ -23,17 +23,11 @@ const login = asyncHandler(async(req, res) => {
 })
 
 const register = asyncHandler(async(req, res) => {
-    const {nombre, email, password, password2} = req.body
+    const {nombre, email, password} = req.body
 
     if(!nombre || !email || !password) {
         res.status(400)
         throw new Error("Hay datos que no fueron ingresados.")
-    }
-
-    if (password !== password2) {
-        res.status(400)
-        throw new Error("Las contraseñas no coinciden")
-        
     }
 
     //verifico la existencia del usuario en la BD
