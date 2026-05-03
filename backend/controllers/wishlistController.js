@@ -9,7 +9,7 @@ const getWishlist = asyncHandler(async(req, res) => {
 
 // que el user pueda agregar a su wishlist
 const addWishlist = asyncHandler(async(req, res) => {
-    const {cafeteria, nota, imagen} = req.body
+    const {cafeteria, ubicacion, nota, imagen} = req.body
 
     if (!cafeteria) {
         res.status(400)
@@ -18,6 +18,7 @@ const addWishlist = asyncHandler(async(req, res) => {
 
     const nueva = await Wishlist.create({
         cafeteria,
+        ubicacion,
         nota,
         imagen,
         user: req.user.id

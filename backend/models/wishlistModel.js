@@ -5,6 +5,9 @@ const wishlistSchema = mongoose.Schema({
         type: String,
         required: [true, "Escribe el nombre de la cafetería"]
     },
+    ubicaciom: {
+        type: String
+    },
     nota : {
         type: String
     }, 
