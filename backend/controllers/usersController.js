@@ -25,7 +25,7 @@ const login = asyncHandler(async(req, res) => {
 const register = asyncHandler(async(req, res) => {
     const {nombre, email, password, password2} = req.body
 
-    if(!nombre || !email || !password || !password2) {
+    if(!nombre || !email || !password) {
         res.status(400)
         throw new Error("Hay datos que no fueron ingresados.")
     }
