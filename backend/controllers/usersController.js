@@ -9,17 +9,24 @@ const login = asyncHandler(async(req, res) => {
     // verifico que el usuario existe
     const user = await User.findOne({email})
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-        res.status(200).json({
-            _id: user.id,
-            nombre: user.nombre,
-            token: generarToken(user.id)
-        })
-    } else {
+    if(!user) {
+        res.status(404)
+        throw new Error("El usuario no existe")   
+    }
+
+    const passwordCorrecta = await bcrypt.compare(password, user.password)
+
+    if(!passwordCorrecta) {
         res.status(401)
-        throw new Error("Algo fue ingresado de manera incorrecta):")
+        throw new Error("Contraseña incorrecta):");
         
     }
+
+    res.status(200).json({
+        _id: user.id,
+        nombre: user.nombre,
+        token: generarToken(user.id)
+    })
 })
 
 const register = asyncHandler(async(req, res) => {
