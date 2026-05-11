@@ -1,10 +1,13 @@
 const express = require('express')
 const router = express.Router()
-const {getCafeterias, addCafeterias, updateCafeterias, deleteCafeterias} = require('../controllers/recomendacionesController')
+const {getCafeterias, getMisCafeterias, addCafeterias, updateCafeterias, deleteCafeterias} = require('../controllers/recomendacionesController')
 const {protect} = require('../middleware/authMiddleware')
 
 // get:
 router.get('/', getCafeterias)
+
+// get mis recomendaciones:
+router.get('/misRecomendaciones', protect, getMisCafeterias)
 
 // add:
 router.post('/', protect, addCafeterias)

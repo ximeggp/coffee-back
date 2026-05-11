@@ -1,9 +1,15 @@
 const asyncHandler = require("express-async-handler")
 const Recomendacion = require("../models/recomendacionesModel")
 
-// obtener recomendaciones
+// obtener recomendaciones generales
 const getCafeterias = asyncHandler(async(req, res) => {
     const cafeterias = await Recomendacion.find().populate("user", "nombre")
+    res.status(200).json(cafeterias)
+})
+
+//obtener recomendaciones personales
+const getMisCafeterias = asyncHandler(async(req,res) => {
+    const cafeterias = await Recomendacion.find({user: req.user.id}).populate("user", "nombre").sort({createdAt:-1})
     res.status(200).json(cafeterias)
 })
 
@@ -82,6 +88,6 @@ const deleteCafeterias = asyncHandler(async(req, res) => {
 })
 
 module.exports = {
-    getCafeterias, addCafeterias, updateCafeterias, deleteCafeterias
+    getCafeterias, getMisCafeterias, addCafeterias, updateCafeterias, deleteCafeterias
 }
 
