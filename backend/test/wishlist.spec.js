@@ -3,34 +3,63 @@ const Wishlist = require('../models/wishlistModel')
 
 jest.mock('../models/wishlistModel')
 
+// static:
+const user_id = '123'
+const user_id2 = '987'
+const coffee_wl = [{cafeteria: 'Café loco'}, {cafeteria: 'Amucca'}]
+
+// dynamic:
+function createItem(overrides = {}) {
+  return {
+    _id: 'item_123',
+    cafeteria: 'Arista Barista',
+    nota: '',
+    user: user_id,
+    ...overrides
+  }
+}
+
 describe('Wishlist test', () => {
+  let req
+  let res
+
+    
+    beforeAll(() => {
+      console.log('Se da inicio a los test :)')
+    })
+
+    beforeEach(() => {
+      req = { user: { id: user_id }, params: {}, body: {}}
+      res = { status: jest.fn().mockReturnThis(), json: jest.fn() }
+    })
+
+    afterEach(() => {
+      jest.clearAllMocks()
+    })
+
+    afterAll(() => {
+      console.log('Todos los tests han finalizado :)')
+    })
 
     // test 1:
     test('should return exact user wishlist structure', async() => {
     // arrange:
-    const req = { user: { id: "123" } };
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() }
-    const mockList = [{ cafeteria: "Café Loco", rating: 5 }]
-    Wishlist.find.mockResolvedValue(mockList)
+    Wishlist.find.mockResolvedValue(coffee_wl)
 
     // act:
     await getWishlist(req, res)
 
     // assert:
+    expect(Wishlist.find).toHaveBeenCalledWith({user: user_id}) // new line
     expect(res.status).toHaveBeenCalledWith(200)
-    expect(res.json).toHaveBeenCalledWith(mockList)
+    expect(res.json).toHaveBeenCalledWith(coffee_wl)
     })
 
     // test 2:
     test('should respond with status 201 on item creation', async () => {
     // arrange
-    const req = { 
-      body: { cafeteria: "Arista Barista", rating: 5 }, 
-      user: { id: "123" } 
-    }
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-
-    Wishlist.create.mockResolvedValue({ cafeteria: "Arista Barista", user: "123" })
+      req.body = { cafeteria: "Arista Barista"}
+      Wishlist.create.mockResolvedValue(createItem()) // new line
 
     // act
     await addWishlist(req, res)
@@ -42,20 +71,11 @@ describe('Wishlist test', () => {
   // test 3:
   test('should return updated item matching partial fields', async() => {
     // arrange
-    const req = {
-      params: {id:'item_123'},
-      body: {nota: "Good coffee!"},
-      user: {id: '123'}
-    }
-    const res = {status: jest.fn().mockReturnThis(), json: jest.fn()}
-    const updatedDbRecord = {
-      _id: 'item_123', 
-      nota: 'Good coffee!', 
-      user: '123', 
-      updatedAt: new Date()
-    }
-    Wishlist.findById.mockResolvedValue({ user: { toString: () => '123' } })
-    Wishlist.findByIdAndUpdate.mockResolvedValue(updatedDbRecord)
+    const item = createItem() // new
+    req.params = {id: item._id} // new
+    req.body = {nota: 'Good coffee!'} // new
+    Wishlist.findById.mockResolvedValue(item) // new
+    Wishlist.findByIdAndUpdate.mockResolvedValue(createItem({nota: 'Good coffee!'})) // new
 
     // act
     await updateWishlist(req, res)
@@ -67,48 +87,38 @@ describe('Wishlist test', () => {
   // test 4:
   test('should throw error when adding item without coffee shop name', async() => {
     // arrange
-    const req = { body: {}, user: { id: '123'} }; 
-    const res = { status: jest.fn().mockReturnThis() };
+    req.body = {} // new
 
   // act and assert
-    try {
-      await addWishlist(req, res)
-    } catch (error) {
-      expect(error.message).toBe('Escribe una cafetería')
-    }
+    await expect(addWishlist(req,res)).rejects.toThrow('Escribe una cafetería')
+    expect(res.status).toHaveBeenCalledWith(400)
   })
 
   // test 5:
   test('should evaluate ownership check as false for unauthorized user', async() => {
     // arrange
-    const req = { params: { id: "item_999" }, user: { id: '123' } }
-    const res = { status: jest.fn().mockReturnThis() }
+    const otherItem = createItem({_id: 'item_987', user: user_id2}) // new
+    req.params = {id: otherItem._id}
+    req.body = {nota: 'hack'} // new
+    Wishlist.findById.mockResolvedValue(otherItem)
 
-    Wishlist.findById.mockResolvedValue({user: {toString: () => '999'}})
-
-    // act
-    const dbRecord = await Wishlist.findById(req.params.id);
-    const isOwner = dbRecord.user.toString() === req.user.id;
-
-    // assert 
-    expect(isOwner).toBeFalsy()
+    // act and assert
+    await expect(updateWishlist(req, res)).rejects.toThrow('No autorizado para editar')
+    expect(res.status).toHaveBeenCalledWith(403) 
+    expect(Wishlist.findByIdAndUpdate).not.toHaveBeenCalled()
   })
 
   // test 6:
   test('should contain specific coffee shop inside wishlist collection', async() => {
     // arrange
-    const req = { user: { id: '123' } }
-    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() }
-    const mockList = [{ cafeteria: 'Café Loco' }, { cafeteria: 'Amucca' }]
-
-    Wishlist.find.mockResolvedValue(mockList)
+    Wishlist.find.mockResolvedValue(coffee_wl)
 
     // act
     await getWishlist(req, res)
 
     // assert
-    const coffeeShopNames = mockList.map(item => item.cafeteria)
+    const coffeeShopNames = res.json.mock.calls[0][0].map(item => item.cafeteria)
     expect(coffeeShopNames).toContain('Amucca')
   })
 
-})
+  })
